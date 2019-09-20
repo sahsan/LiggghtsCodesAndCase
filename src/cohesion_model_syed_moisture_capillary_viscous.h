@@ -42,11 +42,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COHESION_MODEL
-COHESION_MODEL(COHESION_EASO_CAPILLARY_VISCOUS,easo/capillary/viscous,8)
+COHESION_MODEL(COHESION_SYED_MOISTURE_CAPILLARY_VISCOUS,syed_moisture/capillary/viscous,11)
 #else
 
-#ifndef COHESION_MODEL_EASO_CAPILLARY_VISCOUS_H_
-#define COHESION_MODEL_EASO_CAPILLARY_VISCOUS_H_
+#ifndef COHESION_MODEL_SYED_MOISTURE_CAPILLARY_VISCOUS_H_
+#define COHESION_MODEL_SYED_MOISTURE_CAPILLARY_VISCOUS_H_
 
 #include "contact_models.h"
 #include "cohesion_model_base.h"
@@ -61,25 +61,25 @@ COHESION_MODEL(COHESION_EASO_CAPILLARY_VISCOUS,easo/capillary/viscous,8)
 
 namespace MODEL_PARAMS
 {
-    inline static ScalarProperty* createliquidContentInitialEaso(PropertyRegistry & registry, const char * caller, bool sanity_checks)
+    inline static ScalarProperty* createliquidContentInitialSyed(PropertyRegistry & registry, const char * caller, bool sanity_checks)
     {
       ScalarProperty* surfaceLiquidContentInitialScalar = MODEL_PARAMS::createScalarProperty(registry, "surfaceLiquidContentInitial", caller);
       return surfaceLiquidContentInitialScalar;
     }
 
-    inline static ScalarProperty* createMinSeparationDistanceRatioEaso(PropertyRegistry & registry, const char * caller, bool sanity_checks)
+    inline static ScalarProperty* createMinSeparationDistanceRatioSyed(PropertyRegistry & registry, const char * caller, bool sanity_checks)
     {
       ScalarProperty* minSeparationDistanceRatioScalar = MODEL_PARAMS::createScalarProperty(registry, "minSeparationDistanceRatio", caller);
       return minSeparationDistanceRatioScalar;
     }
 
-    inline static ScalarProperty* createMaxSeparationDistanceRatioEaso(PropertyRegistry & registry, const char * caller, bool sanity_checks)
+    inline static ScalarProperty* createMaxSeparationDistanceRatioSyed(PropertyRegistry & registry, const char * caller, bool sanity_checks)
     {
       ScalarProperty* maxSeparationDistanceRatioScalar = MODEL_PARAMS::createScalarProperty(registry, "maxSeparationDistanceRatio", caller);
       return maxSeparationDistanceRatioScalar;
     }
 
-    inline static ScalarProperty* createFluidViscosityEaso(PropertyRegistry & registry, const char * caller, bool sanity_checks)
+    inline static ScalarProperty* createFluidViscositySyed(PropertyRegistry & registry, const char * caller, bool sanity_checks)
     {
       ScalarProperty* fluidViscosityScalar = MODEL_PARAMS::createScalarProperty(registry, "fluidViscosity", caller);
       return fluidViscosityScalar;
@@ -91,7 +91,7 @@ namespace LIGGGHTS {
 namespace ContactModels {
 
   template<>
-  class CohesionModel<COHESION_EASO_CAPILLARY_VISCOUS> : public CohesionModelBase {
+  class CohesionModel<COHESION_SYED_MOISTURE_CAPILLARY_VISCOUS> : public CohesionModelBase {
 
   public:
     CohesionModel(LAMMPS * lmp, IContactHistorySetup * hsetup,class ContactModelBase *cmb) :
@@ -110,7 +110,7 @@ namespace ContactModels {
       history_offset = hsetup->add_history_value("contflag", "0");
       
       if(cmb->is_wall())
-        error->warning(FLERR,"Using cohesion model easo/capillary/viscous for walls only supports dry walls");
+        error->warning(FLERR,"Using cohesion model syed_moisture/capillary/viscous for walls only supports dry walls");
     }
 
     void registerSettings(Settings& settings)
@@ -129,13 +129,13 @@ namespace ContactModels {
       registry.registerProperty("minSeparationDistanceRatio", &MODEL_PARAMS::createMinSeparationDistanceRatioEaso);
       registry.registerProperty("maxSeparationDistanceRatio", &MODEL_PARAMS::createMaxSeparationDistanceRatioEaso);
 
-      registry.connect("surfaceLiquidContentInitial", surfaceLiquidContentInitial,"cohesion_model easo/capillary/viscous");
-      registry.connect("surfaceTension", surfaceTension,"cohesion_model easo/capillary/viscous");
-      registry.connect("fluidViscosity", fluidViscosity,"cohesion_model easo/capillary/viscous");
-      registry.connect("contactAngle", contactAngle,"cohesion_model easo/capillary/viscous");
-      registry.connect("minSeparationDistanceRatio", minSeparationDistanceRatio,"cohesion_model easo/capillary/viscous");
+      registry.connect("surfaceLiquidContentInitial", surfaceLiquidContentInitial,"cohesion_model syed_moisture/capillary/viscous");
+      registry.connect("surfaceTension", surfaceTension,"cohesion_model syed_moisture/capillary/viscous");
+      registry.connect("fluidViscosity", fluidViscosity,"cohesion_model syed_moisture/capillary/viscous");
+      registry.connect("contactAngle", contactAngle,"cohesion_model syed_moisture/capillary/viscous");
+      registry.connect("minSeparationDistanceRatio", minSeparationDistanceRatio,"cohesion_model syed_moisture/capillary/viscous");
       
-      registry.connect("maxSeparationDistanceRatio", maxSeparationDistanceRatio,"cohesion_model easo/capillary/viscous");
+      registry.connect("maxSeparationDistanceRatio", maxSeparationDistanceRatio,"cohesion_model syed_moisture/capillary/viscous");
 
       ln1overMinSeparationDistanceRatio = log(1./minSeparationDistanceRatio);
 
@@ -166,10 +166,10 @@ namespace ContactModels {
         modify->add_fix(16,const_cast<char**>(newarg));
       }
 
-      fix_surfaceliquidcontent = static_cast<FixPropertyAtom*>(modify->find_fix_property("surfaceLiquidContent","property/atom","scalar",0,0,"cohesion_model easo/capillary/viscous"));
-      fix_liquidflux = static_cast<FixPropertyAtom*>(modify->find_fix_property("liquidFlux","property/atom","scalar",0,0,"cohesion_model easo/capillary/viscous"));
+      fix_surfaceliquidcontent = static_cast<FixPropertyAtom*>(modify->find_fix_property("surfaceLiquidContent","property/atom","scalar",0,0,"cohesion_model syed_moisture/capillary/viscous"));
+      fix_liquidflux = static_cast<FixPropertyAtom*>(modify->find_fix_property("liquidFlux","property/atom","scalar",0,0,"cohesion_model syed_moisture/capillary/viscous"));
       fix_ste = modify->find_fix_scalar_transport_equation("liquidtransfer");
-      fix_temperature = static_cast<FixPropertyAtom*>(modify->find_fix_property("Temp","property/atom","scalar",0,0,"cohesion_model easo/capillary/viscous"));   //SN_Ahsan edit
+      fix_temperature = static_cast<FixPropertyAtom*>(modify->find_fix_property("Temp","property/atom","scalar",0,0,"cohesion_model syed_moisture/capillary/viscous"));   //SN_Ahsan edit
 
       
       if(!fix_surfaceliquidcontent || !fix_liquidflux || !fix_ste)
@@ -177,11 +177,11 @@ namespace ContactModels {
 
       // error checks on coarsegraining
       if(force->cg_active())
-        error->cg(FLERR,"cohesion model easo/capillary/viscous");
+        error->cg(FLERR,"cohesion model syed_moisture/capillary/viscous");
 
       neighbor->register_contact_dist_factor(maxSeparationDistanceRatio*1.1); 
       if(maxSeparationDistanceRatio < 1.0)
-            error->one(FLERR,"\n\ncohesion model easo/capillary/viscous requires maxSeparationDistanceRatio >= 1.0. Please increase this value.\n");
+            error->one(FLERR,"\n\ncohesion model syed_moisture/capillary/viscous requires maxSeparationDistanceRatio >= 1.0. Please increase this value.\n");
     }
 
     inline void endSurfacesIntersect(SurfacesIntersectData &sidata, ForceData&, ForceData&) {}
@@ -304,7 +304,11 @@ namespace ContactModels {
           //std::cout<<"Bridge break temp active !!"<<std::endl;
         }
 
-      
+//      if(!MathExtraLiggghts::compDouble(contflag[0],1.0,1e-6))
+ //     {
+  //        if(scdata.contact_flags) *scdata.contact_flags &= ~CONTACT_COHESION_MODEL;
+   //       return;
+    //  }
 
       if(bridge_breaks_temp)     //SN_Ahsan edit
         {
@@ -321,17 +325,23 @@ namespace ContactModels {
               double *surfaceLiquidContent = fix_surfaceliquidcontent->vector_atom;
 
 
-              if (Temp[i]>300.00)
+              if(Temp[i]>300.00)
                 {
-                  surfaceLiquidContent[i] = 0.0;
-                 // Temp[i] -= 10;
-                   //             std::cout<<Temp[i]<<"is greater than 280"<<std::endl;
+                  surfaceLiquidContent[i] -=10.0;
+		  if(surfaceLiquidContent[i]<0)
+		    {
+		      surfaceLiquidContent[i] = 0.0;
+		    }
+                  Temp[i] -= 10.0;
                 }
-              if (Temp[j]>300.00)
+              if(Temp[j]>300.00)
                 {
-                  surfaceLiquidContent[j] = 0.0;
-                  //Temp[j] -= 10;
-                    //            std::cout<<Temp[j]<<"is greater than 280"<<std::endl;
+                  surfaceLiquidContent[j] -= 10.0;
+		  if(surfaceLiquidContent[j]<0)
+		    {
+		      surfaceLiquidContent[j] = 0.0;
+		    }
+                  Temp[j] -= 10.0;
                 }
               //          }
         }
